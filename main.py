@@ -106,6 +106,71 @@ class Anime:
         """
         return self.animes[name]
     
+    def update(
+        self,
+        name: str,
+        *,
+        new_name: str | None = None,
+        genres: list[Genres] | None = None,
+        rating: Rating | None = None,
+        episodes: int | None = None,
+        comments: str | None = None,
+    ) -> AnimeObject:
+        """
+        Updates the AnimeObject specified by name.
+
+        Args:
+            name: The existing anime title to update.
+            new_name: Optional new title for the anime.
+            genres: Optional updated list of genres.
+            rating: Optional updated rating.
+            episodes: Optional updated episode count.
+            comments: Optional updated comments.
+
+        Returns:
+            AnimeObject: The updated anime object.
+
+        Raises:
+            KeyError: If the anime doesn't exist.
+            ValueError: If new_name already exists or episodes is invalid.
+            TypeError: If any provided field has an invalid type.
+        """
+        if name not in self.animes:
+            raise KeyError(f'"{name}" does not exist. You cannot update what was never created.')
+
+        anime = self.animes[name]
+
+        if new_name is not None:
+            if new_name != name and new_name in self.animes:
+                raise ValueError(f'"{new_name}" already exists. Cannot rename to an existing anime.')
+            anime.name = new_name
+
+        if genres is not None:
+            if not all(isinstance(g, Genres) for g in genres):
+                raise TypeError("genres must contain only Genres enums. Why are you getting enums wrong anyways?")
+            anime.genres = genres
+
+        if rating is not None:
+            if not isinstance(rating, Rating):
+                raise TypeError("rating must be a Rating enum, and don't go creating your own.")
+            anime.rating = rating
+
+        if episodes is not None:
+            if episodes <= 0:
+                raise ValueError("DUDE! I told you no zero or negative episodes.")
+            anime.episodes = episodes
+
+        if comments is not None:
+            if not isinstance(comments, str):
+                raise TypeError("comments must be a string.")
+            anime.comments = comments
+
+        if new_name is not None and new_name != name:
+            self.animes[new_name] = anime
+            del self.animes[name]
+
+        return anime
+
     def delete(self, name:str) -> None:
         """
         Deletes the AnimeObject specified. Goodbye soldier.
@@ -130,3 +195,6 @@ anime = Anime()
 
 anime.create("Yes", [Genres.Harem, Genres.Romance], Rating.Meh, 12, "tspmo man...")
 print(anime.get("Yes"))
+
+anime.update("Yes", rating=Rating.Great, episodes=24, comments="Actually this one grows on you.")
+print("\nUpdated anime:\n", anime.get("Yes"))
